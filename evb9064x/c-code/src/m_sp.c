@@ -726,8 +726,6 @@ m_spGetErrorMessage (struct MSpHandle *handle)
 /* |_____|___|_| \_|\___//_/\_\                                               */
 /*                                                                            */
 
-using namespace std;
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -743,25 +741,27 @@ using namespace std;
 #include <string.h>
 #include <errno.h>
 
+#include <stdlib.h>
+
 #ifndef strerr
 #define strerr(a) strerror(a)
 #endif
 
-struct struct MSpHandle
+struct MSpHandle
 {
-  string comportName_;
-  string sendLineEnding_;
-  string receiveLineEnding_;
-  string errorMessage_;
-  string errorMessageBuffer_;
+  char comportName_[32];
+  char sendLineEnding_[16];
+  char receiveLineEnding_[16];
+  char errorMessage_[256];
+  char errorMessageBuffer_[256];
 
   int  fd_;               /* file descriptor/comms handle */
   long readTimeout_;     /* timeout for reading */
 };
 
 
-static string g_errorMessage;
-static string g_errorMessageBuffer;
+static char g_errorMessage[256];
+static char g_errorMessageBuffer[256];
 
 
 static void
@@ -771,42 +771,23 @@ storeErrorMessage (struct MSpHandle *handle)
 
   if (handle == NULL)
   {
-    g_errorMessage = msgbuf;
+    strncpy(g_errorMessage, msgbuf, sizeof(g_errorMessage));
     return;
   }
-  handle->errorMessage_ = msgbuf;
-}
-
-
-int
-m_spDestroyHandle (struct MSpHandle *handle)
-{
-  if (handle == NULL)
-  {
-    snprintf (g_errorMessage, sizeof(g_errorMessage), "sp: ERROR: no handle");
-    return 0;
-  }
-
-  m_spClose (handle);
-  handle->comportName_ = "";
-  handle->fd_ = -1;
-  delete handle;
-
-  handle = NULL;
-  return 1;
+  strncpy(handle->errorMessage_, msgbuf, sizeof(handle->errorMessage_));
 }
 
 
 struct MSpHandle *
 spOpen (const char *comport)
 {
-  struct MSpHandle *handle = new struct MSpHandle;
-  handle->comportName_ = comport;
+  struct MSpHandle *handle = (struct MSpHandle *)malloc(sizeof(struct MSpHandle));
+  strncpy(handle->comportName_, comport, sizeof(handle->comportName_));
 
   if (handle == NULL)
   {
     snprintf (g_errorMessage, sizeof(g_errorMessage), "sp: ERROR: no handle");
-    delete handle;
+    free (handle);
     return NULL;
   }
 
@@ -816,7 +797,7 @@ spOpen (const char *comport)
   if (!result)
     {
       snprintf (g_errorMessage, sizeof(g_errorMessage), "sp: ERROR: spOpen set default line endings");
-      delete handle;
+      free(handle);
       return NULL;
     }
 
@@ -830,7 +811,7 @@ spOpen (const char *comport)
   if (handle->fd_ < 0)
   {
     storeErrorMessage (NULL);
-    delete handle;
+    free(handle);
     return NULL;
   }
 
@@ -838,11 +819,11 @@ spOpen (const char *comport)
   int tmp = fcntl (handle->fd_, F_GETFL, 0);
   fcntl (handle->fd_, F_SETFL, tmp & ~O_NDELAY);
 
-  termios ts;
+  struct termios ts;
   if (tcgetattr (handle->fd_, &ts) < 0)
   {
     storeErrorMessage (NULL);
-    delete handle;
+    free(handle);
     return NULL;
   }
 
@@ -850,7 +831,7 @@ spOpen (const char *comport)
   /* set input modes so we get raw handling */
   ts.c_iflag &= ~(IGNPAR|PARMRK|INLCR|IGNCR|ICRNL|IXON);
   ts.c_iflag |= BRKINT;
-  ts.c_oflag &= ~(OPOST|ONLCR|OCRNL|ONOCR|ONLRET|NLDLY|CRDLY|TABDLY);
+  ts.c_oflag &= ~(OPOST|ONLCR|OCRNL|ONOCR|ONLRET);
 
   ts.c_lflag &= ~(ICANON|ECHO|ISTRIP|ISIG);
   ts.c_cc[VMIN] = 1;
@@ -861,7 +842,7 @@ spOpen (const char *comport)
   if (tcsetattr (handle->fd_, TCSANOW, &ts) < 0)
   {
     storeErrorMessage (NULL);
-    delete handle;
+    free(handle);
     return NULL;
   }
 
@@ -870,11 +851,11 @@ spOpen (const char *comport)
 
 
 struct MSpHandle *
-m_spOpen                (const char *comport, MBaudRate baudRate, MStopBits stopBits, MParity parity, MHandShake handshake)
+m_spOpen                (const char *comport, enum MBaudRate baudRate, enum MStopBits stopBits, enum MParity parity, enum MHandShake handshake)
 {
   int result = 1;
 
-  struct MSpHandle *handle = spOpen (comport);
+  struct MSpHandle *handle = spOpen(comport);
   if (handle == NULL) return NULL;
 
   if (!m_spSetBaudRate  (handle, baudRate))  result = 0;
@@ -891,61 +872,6 @@ m_spOpen                (const char *comport, MBaudRate baudRate, MStopBits stop
 }
 
 
-
-struct MSpHandle *
-m_spOpen                (MComPort comPort, MBaudRate baudRate, MStopBits stopBits, MParity parity, MHandShake handshake)
-{
-  const char *port = NULL;
-  switch (comPort)
-  {
-    case M_SP_COM1: port = "/dev/ttyS0"; break;
-    case M_SP_COM2: port = "/dev/ttyS1"; break;
-    case M_SP_COM3: port = "/dev/ttyS2"; break;
-    case M_SP_COM4: port = "/dev/ttyS3"; break;
-    case M_SP_COM5: port = "/dev/ttyS4"; break;
-    case M_SP_COM6: port = "/dev/ttyS5"; break;
-    case M_SP_COM7: port = "/dev/ttyS6"; break;
-    case M_SP_COM8: port = "/dev/ttyS7"; break;
-    case M_SP_COM9: port = "/dev/ttyS8"; break;
-    case M_SP_COM10: port = "/dev/ttyS9"; break;
-    case M_SP_COM11: port = "/dev/ttyS10"; break;
-    case M_SP_COM12: port = "/dev/ttyS11"; break;
-    case M_SP_COM13: port = "/dev/ttyS12"; break;
-    case M_SP_COM14: port = "/dev/ttyS13"; break;
-    case M_SP_COM15: port = "/dev/ttyS14"; break;
-    case M_SP_COM16: port = "/dev/ttyS15"; break;
-    case M_SP_COM17: port = "/dev/ttyS16"; break;
-    case M_SP_COM18: port = "/dev/ttyS17"; break;
-    case M_SP_COM19: port = "/dev/ttyS18"; break;
-    case M_SP_COM20: port = "/dev/ttyS19"; break;
-    case M_SP_COM21: port = "/dev/ttyS20"; break;
-    case M_SP_COM22: port = "/dev/ttyS21"; break;
-    case M_SP_COM23: port = "/dev/ttyS22"; break;
-    case M_SP_COM24: port = "/dev/ttyS23"; break;
-    case M_SP_COM25: port = "/dev/ttyS24"; break;
-    case M_SP_COM26: port = "/dev/ttyS25"; break;
-    case M_SP_COM27: port = "/dev/ttyS26"; break;
-    case M_SP_COM28: port = "/dev/ttyS27"; break;
-    case M_SP_COM29: port = "/dev/ttyS28"; break;
-    case M_SP_COM30: port = "/dev/ttyS29"; break;
-    case M_SP_COM31: port = "/dev/ttyS30"; break;
-    case M_SP_COM32: port = "/dev/ttyS31"; break;
-    case M_SP_COM_USB0: port = "/dev/ttyUSB0"; break;
-    case M_SP_COM_USB1: port = "/dev/ttyUSB1"; break;
-    case M_SP_COM_USB2: port = "/dev/ttyUSB2"; break;
-    case M_SP_COM_USB3: port = "/dev/ttyUSB3"; break;
-  }
-
-  if (port == NULL)
-  {
-    snprintf (g_errorMessage, sizeof(g_errorMessage), "sp: MComPort '%d' not supported", comPort);
-    return NULL;
-  }
-
-  return m_spOpen (port, baudRate, stopBits, parity, handshake);
-}
-
-
 int
 m_spClose               (struct MSpHandle *handle)
 {
@@ -954,22 +880,24 @@ m_spClose               (struct MSpHandle *handle)
     snprintf (g_errorMessage, sizeof(g_errorMessage), "sp: ERROR: no handle");
     return 0;
   }
+  // printf ("m_spClose: fd: %d\n", handle->fd_);
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
-  close (handle->fd_);
+  close(handle->fd_);
   handle->fd_ = -1;
-  delete handle;
+  free(handle);
+  handle = NULL;
 
   return 1;
 }
 
 
 int
-m_spSetBaudRate         (struct MSpHandle *handle, MBaudRate baudRate)
+m_spSetBaudRate         (struct MSpHandle *handle, enum MBaudRate baudRate)
 {
   if (handle == NULL)
   {
@@ -978,7 +906,7 @@ m_spSetBaudRate         (struct MSpHandle *handle, MBaudRate baudRate)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1034,7 +962,7 @@ m_spSetBaudRate         (struct MSpHandle *handle, MBaudRate baudRate)
 
   }
 
-  termios ts;
+  struct termios ts;
   if (tcgetattr (handle->fd_, &ts) < 0)
   {
     storeErrorMessage (handle);
@@ -1054,7 +982,7 @@ m_spSetBaudRate         (struct MSpHandle *handle, MBaudRate baudRate)
 
 
 int
-m_spSetStopBits         (struct MSpHandle *handle, MStopBits stopBits)
+m_spSetStopBits         (struct MSpHandle *handle, enum MStopBits stopBits)
 {
   if (handle == NULL)
   {
@@ -1063,12 +991,12 @@ m_spSetStopBits         (struct MSpHandle *handle, MStopBits stopBits)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
 
-  termios ts;
+  struct termios ts;
   if (tcgetattr (handle->fd_, &ts) < 0)
   {
     storeErrorMessage (handle);
@@ -1093,7 +1021,7 @@ m_spSetStopBits         (struct MSpHandle *handle, MStopBits stopBits)
 
 
 int
-m_spSetParity           (struct MSpHandle *handle, MParity parity)
+m_spSetParity           (struct MSpHandle *handle, enum MParity parity)
 {
   if (handle == NULL)
   {
@@ -1102,11 +1030,11 @@ m_spSetParity           (struct MSpHandle *handle, MParity parity)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
-  termios ts;
+  struct termios ts;
   if (tcgetattr (handle->fd_, &ts) < 0)
   {
     storeErrorMessage (handle);
@@ -1145,7 +1073,7 @@ m_spSetParity           (struct MSpHandle *handle, MParity parity)
 
 
 int
-m_spSetHandShake        (struct MSpHandle *handle, MHandShake handShake)
+m_spSetHandShake        (struct MSpHandle *handle, enum MHandShake handShake)
 {
   if (handle == NULL)
   {
@@ -1154,7 +1082,7 @@ m_spSetHandShake        (struct MSpHandle *handle, MHandShake handShake)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1174,12 +1102,12 @@ m_spWaitForData           (struct MSpHandle *handle)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
 
-//  termios ts;
+//  struct termios ts;
 //  if (tcgetattr (handle->fd_, &ts) < 0)
 //  {
 //    storeErrorMessage (handle);
@@ -1309,7 +1237,7 @@ m_spFlushInput          (struct MSpHandle *handle)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1318,36 +1246,11 @@ m_spFlushInput          (struct MSpHandle *handle)
 
   m_spSetTimeout (handle, 0);
 
-  while (m_spReceive(handle, byte) > 0);
+  while (m_spReceive(handle, &byte, 1) > 0);
 
   m_spSetTimeout (handle, timeout);
 
   return 1;
-}
-
-
-int
-m_spSend                (struct MSpHandle *handle, const unsigned char byte)
-{
-  if (handle == NULL)
-  {
-    snprintf (g_errorMessage, sizeof(g_errorMessage), "sp: ERROR: no handle");
-    return 0;
-  }
-  if (handle->fd_ < 0)
-  {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
-    return 0;
-  }
-
-  int ret = write (handle->fd_, &byte, 1);
-  if (ret < 0)
-    {
-      storeErrorMessage (handle);
-      return 0;
-    }
-
-  return ret;
 }
 
 
@@ -1361,7 +1264,7 @@ m_spSend                (struct MSpHandle *handle, const void *buffer, const uns
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1377,8 +1280,8 @@ m_spSend                (struct MSpHandle *handle, const void *buffer, const uns
 
 
 int
-m_spReceive             (struct MSpHandle *handle, unsigned char &byte)
-{
+m_spReceiveByte(struct MSpHandle *handle, unsigned char *ch)
+{ 
   if (handle == NULL)
   {
     snprintf (g_errorMessage, sizeof(g_errorMessage), "sp: ERROR: no handle");
@@ -1386,36 +1289,24 @@ m_spReceive             (struct MSpHandle *handle, unsigned char &byte)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
-
-  if (m_spWaitForData (handle) > 0)
+  if (m_spWaitForData(handle) > 0)
+  {
+    int ret = read(handle->fd_, ch, 1);
+    if (ret < 0)
     {
-      int ret = read (handle->fd_, &byte, 1);
-      if (ret < 0)
-        {
-          storeErrorMessage (handle);
-          return 0;
-        }
-      if (ret == 0)
-        {
-          return 0;
-        }
-      return 1;
+      storeErrorMessage(handle);
+      return 0;
     }
-
+    if (ret == 0)
+    {
+      return 0;
+    }
+    return 1;
+  }
   return 0;
-}
-
-
-int
-m_spReceive             (struct MSpHandle *handle, char &byte)
-{
-  unsigned char ubyte;
-  int result = m_spReceive (handle, ubyte);
-  byte = ubyte;
-  return result;
 }
 
 
@@ -1429,7 +1320,7 @@ m_spReceive             (struct MSpHandle *handle, void *buffer, const unsigned 
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1437,7 +1328,7 @@ m_spReceive             (struct MSpHandle *handle, void *buffer, const unsigned 
   for(; i < size; i++)
   {
     unsigned char ch;
-    int ret = m_spReceive (handle, ch);
+    int ret = m_spReceiveByte(handle, &ch);
     if (ret == 0) break;
     ((unsigned char *)buffer)[i] = ch;
   }
@@ -1455,7 +1346,7 @@ m_spSetTimeout          (struct MSpHandle *handle, long usec)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1466,7 +1357,7 @@ m_spSetTimeout          (struct MSpHandle *handle, long usec)
 
 
 int
-m_spReadCts               (struct MSpHandle *handle, int &value)
+m_spReadCts               (struct MSpHandle *handle, int *value)
 {
   if (handle == NULL)
   {
@@ -1475,7 +1366,7 @@ m_spReadCts               (struct MSpHandle *handle, int &value)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1487,13 +1378,13 @@ m_spReadCts               (struct MSpHandle *handle, int &value)
     return 0;
   }
 
-  value = (val & TIOCM_CTS) ? 1 : 0;
+  *value = (val & TIOCM_CTS) ? 1 : 0;
   return 1;
 }
 
 
 int
-m_spReadDsr               (struct MSpHandle *handle, int &value)
+m_spReadDsr               (struct MSpHandle *handle, int *value)
 {
   if (handle == NULL)
   {
@@ -1502,7 +1393,7 @@ m_spReadDsr               (struct MSpHandle *handle, int &value)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1514,13 +1405,13 @@ m_spReadDsr               (struct MSpHandle *handle, int &value)
     return 0;
   }
 
-  value = (val & TIOCM_DSR) ? 1 : 0;
+  *value = (val & TIOCM_DSR) ? 1 : 0;
   return 1;
 }
 
 
 int
-m_spReadRi                (struct MSpHandle *handle, int &value)
+m_spReadRi                (struct MSpHandle *handle, int *value)
 {
   if (handle == NULL)
   {
@@ -1529,7 +1420,7 @@ m_spReadRi                (struct MSpHandle *handle, int &value)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1541,13 +1432,13 @@ m_spReadRi                (struct MSpHandle *handle, int &value)
     return 0;
   }
 
-  value = (val & TIOCM_RI) ? 1 : 0;
+  *value = (val & TIOCM_RI) ? 1 : 0;
   return 1;
 }
 
 
 int
-m_spReadDcd                (struct MSpHandle *handle, int &value)
+m_spReadDcd                (struct MSpHandle *handle, int *value)
 {
   if (handle == NULL)
   {
@@ -1556,7 +1447,7 @@ m_spReadDcd                (struct MSpHandle *handle, int &value)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1568,7 +1459,7 @@ m_spReadDcd                (struct MSpHandle *handle, int &value)
     return 0;
   }
 
-  value = (val & TIOCM_CD) ? 1 : 0;
+  *value = (val & TIOCM_CD) ? 1 : 0;
   return 1;
 }
 
@@ -1583,7 +1474,7 @@ m_spWriteDtr               (struct MSpHandle *handle, int value)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1616,7 +1507,7 @@ m_spWriteRts               (struct MSpHandle *handle, int value)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
 
@@ -1649,7 +1540,7 @@ m_spGetFileDescriptor   (struct MSpHandle *handle)
   }
   if (handle->fd_ < 0)
   {
-    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_.c_str ());
+    snprintf (handle->errorMessage_, sizeof(handle->errorMessage_), "sp: ERROR: no file descriptor (%s)", handle->comportName_);
     return 0;
   }
   return handle->fd_;
@@ -1661,17 +1552,17 @@ m_spGetErrorMessage (struct MSpHandle *handle)
 {
   if (handle == NULL)
   {
-    g_errorMessageBuffer = g_errorMessage;
-    g_errorMessage = "";
-    if (!strcmp (g_errorMessageBuffer.c_str (), ""))
+    strcpy(g_errorMessageBuffer, g_errorMessage);
+    strcpy(g_errorMessage, "");
+    if (!strcmp (g_errorMessageBuffer, ""))
     {
       return "handle is out of range";
     }
-    return g_errorMessageBuffer.c_str ();
+    return g_errorMessageBuffer;
   }
-  handle->errorMessageBuffer_ = handle->errorMessage_;
-  handle->errorMessage_ = "";
-  return handle->errorMessageBuffer_.c_str ();
+  strcpy(handle->errorMessageBuffer_, handle->errorMessage_);
+  strcpy(handle->errorMessage_, "");
+  return handle->errorMessageBuffer_;
 }
 
 

@@ -1,9 +1,11 @@
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <stdint.h>
+#include <unistd.h>
 
 #include "MLX90641_I2C_Driver_evb9064x.h"
 
@@ -13,12 +15,16 @@ int main(void)
 {
   struct MLX90641DriverRegister_t *driver = MLX90641_get_register_evb9064x();
   printf ("driver name: '%s'\n", driver->name_);
-  MLX90641_I2CInit_evb9064x("mlx://evb:9064x/COM6");
+  // MLX90641_I2CInit_evb9064x("mlx://evb:9064x/COM20");
+  MLX90641_I2CInit_evb9064x("mlx://evb:9064x//dev/ttyACM0");
+
 
   fflush(stdout);
 
   uint16_t data[832];
   memset(data, 0, sizeof(data));
+  usleep(100000);
+  // MLX90641_I2CRead_evb9064x(MLX_I2C_ADDR, 0x2400, 832, data);
   MLX90641_I2CRead_evb9064x(MLX_I2C_ADDR, 0x2400, 832, data);
   for (int i = 0; i < 832; i+=16)
   {
@@ -42,6 +48,8 @@ int main(void)
 
   MLX90641_I2CRead_evb9064x(MLX_I2C_ADDR, 0x800D, 1, &control_register1);
   printf ("new refresh_rate: %d\n", (control_register1 >> 7) & 0x07);
+
+  MLX90641_I2CClose_evb9064x(); 
 
   return 0;
 }

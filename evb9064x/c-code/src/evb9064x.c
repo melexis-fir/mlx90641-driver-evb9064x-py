@@ -35,6 +35,8 @@ evb9064x_open(const char *serial_port)
 {
   struct Evb9064x_t *handle = (struct Evb9064x_t *)malloc(sizeof (struct Evb9064x_t));
   handle->sp_handle_ = m_spOpen(serial_port, M_SP_115200, M_SP_ONE, M_SP_NONE, M_SP_OFF);
+
+  m_spSetTimeout(handle->sp_handle_, 100000);
   return handle;
 }
 
@@ -348,6 +350,8 @@ evb9064x_i2c_read(struct Evb9064x_t *handle, uint8_t slave_address, uint16_t mem
   int r = 0;
   uint16_t readed_size = 0;
   memset(buffer, 0, sizeof(buffer));
+
+  m_spSetTimeout(handle->sp_handle_, 100000);
 
   buffer[0] = CMD_I2C_Master_90640;
   buffer[1] = slave_address;

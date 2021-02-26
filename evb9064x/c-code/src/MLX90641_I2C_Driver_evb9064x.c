@@ -1,3 +1,4 @@
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <string.h>
 
@@ -53,16 +54,25 @@ MLX90641_I2CInit_evb9064x(const char *port)
     return;
   }
   const char *port_id = &port[strlen(start)];
+  if (strstr(port_id, "dev/tty") == port_id)
+  {
+    port_id--; // move the pointer one up, to include the '/' character.
+  }
+
   printf ("using comport: '%s'\n", port_id);
 
   g_handle = evb9064x_open(port_id);
-  if (g_handle == NULL) return;
+  if (g_handle == NULL) 
+  {
+    return;
+  }
 
-  char buffer[256];
-  evb9064x_get_hardware_id(g_handle, buffer, sizeof(buffer));
+  // char buffer[256];
+  // evb9064x_get_hardware_id(g_handle, buffer, sizeof(buffer));
   // printf ("evb9064x_get_hardware_id: '%s'\n", (char *)buffer);
   
   evb9064x_set_vdd(g_handle, 3.3);
+  usleep(100000);
   evb9064x_i2c_init(g_handle);
   evb9064x_begin_conversion(g_handle, 0x33);
 }

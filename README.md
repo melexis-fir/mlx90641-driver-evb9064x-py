@@ -10,9 +10,9 @@ https://www.melexis.com/en/product/EVB90640-41/Evaluation-Board-MLX90640
 
 Milestones:
 - [x] win 10 PC + EVB90640-41
-- [ ] linux pc + EVB90640-41
-- [ ] Raspberry pi + EVB90640-41
-- [ ] Jetson Nano + EVB90640-41
+- [.] linux pc + EVB90640-41
+- [x] Raspberry pi + EVB90640-41
+- [.] Jetson Nano + EVB90640-41
 - [ ] BeagleBone + EVB90640-41
 
 
