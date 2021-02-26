@@ -32,7 +32,7 @@ Driver:
 pip install mlx90641-driver-evb9064x
 ```
 
-https://pypi.org/project/mlx90641-driver-evb9064x
+https://pypi.org/project/mlx90641-driver-evb9064x  
 https://pypistats.org/packages/mlx90641-driver-evb9064x
 
 ### Running the driver demo
