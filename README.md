@@ -1,35 +1,27 @@
-# MLX90641 driver
+# MLX90641 driver for EVB90640-41
 
-This is a work-in-progess!
+**This is a work-in-progess!**
+
+This package provide the I2C routines for the required package `mlx90641-driver-py`.
+It uses the EVB hardware which connects to the USB host of a computer.
+
+EVB90640-41:
+https://www.melexis.com/en/product/EVB90640-41/Evaluation-Board-MLX90640
 
 Milestones:
-- [x] win 10 PC + mcp2221
-- [x] Raspberry pi + devtree (/dev/i2c-1)
-- [x] Jetson Nano + devtree
-- [x] Raspberry pi + mcp2221
-- [x] linux pc + mcp2221
-- [ ] Jetson Nano + mcp2221
-- [ ] windows 10 pc + EVB90640-41
-- [ ] linux pc + EVB
-- [ ] raspberry pi + EVB
-- [ ] BeagleBone + mcp2221 + devtree + EVB
-
-# Intro
-
-This python driver for MLX90641 aims to facilitate the interfacing on a PC.
-
-Currently this driver supports 3 type of interfaces:
-- EVB90640-41 ==> https://www.melexis.com/en/product/EVB90640-41/
-- Raspberry Pi with I2C on any GPIO pin.
-- MCP2221 USB to I2C adaptor.
+- [x] win 10 PC + EVB90640-41
+- [ ] linux pc + EVB90640-41
+- [ ] Raspberry pi + EVB90640-41
+- [ ] Jetson Nano + EVB90640-41
+- [ ] BeagleBone + EVB90640-41
 
 
 ## Dependencies
 
 Driver:
 - Python3
+- mlx90641-driver
 - pySerial
-
 
 ## Getting started
 
@@ -37,24 +29,25 @@ Driver:
 
 
 ```bash
-pip install mlx90641
+pip install mlx90641-driver-evb9064x
 ```
 
-https://pypi.org/project/mlx90641/
+https://pypi.org/project/mlx90641-driver-evb9064x
+https://pypistats.org/packages/mlx90641-driver-evb9064x
 
 ### Running the driver demo
 
 * Connect the EVB to your PC.  
 * pen a terminal and run following command:  
 
-
 ```bash
-mlx90641-dump-frame auto
+mlx90641-dump-evb9064x auto
 ```
 
 This program takes 1 optional argument.
 
 ```bash
-mlx90641-dump-frame <communication-port>
+mlx90641-dump-evb9064x <communication-port>
 ```
 
+Note: this dump command is not yet available!
