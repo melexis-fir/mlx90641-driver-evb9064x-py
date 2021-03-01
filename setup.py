@@ -1,6 +1,6 @@
 from setuptools import setup
 
-version = '0.0.3'
+version = '0.0.4'
 
 requires = ['mlx90641-driver>=0.1.0',
             'pyserial>=3']
