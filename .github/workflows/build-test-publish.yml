@@ -48,6 +48,20 @@ jobs:
       with:
         name: bin_linux_pc
         path: evb9064x/c-code/builded
+  build-win10-pc:
+    runs-on: ubuntu-latest
+    env:
+      CC: /usr/local/bin/x86_64-w64-mingw32-gcc
+      AR: /usr/local/bin/x86_64-w64-mingw32-ar
+    container:
+      image: mmozeiko/mingw-w64:latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: make -C evb9064x/c-code clean all -e LIB_RESULT_DIR=builded detected_OS=Windows
+    - uses: actions/upload-artifact@master
+      with:
+        name: bin_win10_pc
+        path: evb9064x/c-code/builded
 
   test-unittesting:
     runs-on: ubuntu-latest
@@ -55,6 +69,7 @@ jobs:
       - build-rpi4
       - build-jetson-nano
       - build-linux-pc
+      - build-win10-pc
     steps:
     - uses: actions/checkout@v2
 
