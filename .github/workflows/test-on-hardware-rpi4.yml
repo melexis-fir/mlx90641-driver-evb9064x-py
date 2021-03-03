@@ -1,0 +1,30 @@
+name: test-on-hardware-rpi4
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+
+jobs:
+  test-on-hardware:
+    runs-on: 
+      - self-hosted
+      - linux
+      - rpi4
+      - hw_mlx90641
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create virtual env and run tests
+      run: |
+         virtualenv venv
+         source venv/bin/activate
+         pip install --no-input mlx90641-driver-evb9064x --upgrade
+         pip install --no-input pytest pytest-ordering pytest-html pytest-metadata
+         python -m pytest -v tests/app_testing -p no:cacheprovider --html=public/app-tests-rpi4-report.html --self-contained-html --metadata homepage https://github.com/melexis-fir/mlx90641-driver-evb9064x-py --metadata i2c_port auto --metadata host_hardware 'Raspberry Pi 4'
+    - uses: actions/upload-artifact@master
+      with:
+        name: test_report
+        path: public

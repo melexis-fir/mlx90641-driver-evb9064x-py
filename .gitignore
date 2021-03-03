@@ -5,3 +5,9 @@ __pycache__/
 *env
 *bak
 *~
+*.o
+*.a
+*.dll
+*.so
+public/*
+*.exe

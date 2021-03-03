@@ -1,8 +1,8 @@
 from setuptools import setup
 
-version = '0.0.4'
+version = '0.1.0'
 
-requires = ['mlx90641-driver>=0.1.0',
+requires = ['mlx90641-driver>=1.1.0',
             'pyserial>=3']
 
 with open("README.md", "r") as fh:
@@ -11,13 +11,14 @@ with open("README.md", "r") as fh:
 setup(
     name='mlx90641-driver-evb9064x',
     version=version,
-    description='MLX90641 FIR Array python interface',
+    description='I2C for MLX90641 using the EVB90640-41 on (windows 10, linux pc, raspberry pi, jetson nano, beagle bone, ...)',
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='Apache License, Version 2.0',
     # entry_points = {'console_scripts': ['mlx90641-dump-frame = mlx.examples.mlx90640_dump_frame:main']},
     entry_points={'console_scripts': []},
     install_requires=requires,
+    python_requires='>=3.6',
     url='https://github.com/melexis-fir/mlx90641-driver-evb9064x-py',
     # Provide either the link to your github or to your website
     download_url='https://github.com/melexis-fir/mlx90641-driver-evb9064x-py/archive/V' + version + '.tar.gz',
@@ -32,7 +33,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Utilities',
     ],
 )
