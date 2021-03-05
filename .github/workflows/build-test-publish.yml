@@ -58,28 +58,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-  test-on-hardware-jetson-nano:
-    environment:
-      name: jetson-nano|evb9064x|hw90641
-    needs:
-      - test-unittesting
-    runs-on: 
-      - self-hosted
-      - linux
-      - jetson-nano
-    steps:
-    - uses: actions/checkout@v2
-    - name: Create virtual env and run tests
-      run: |
-         virtualenv venv
-         source venv/bin/activate
-         pip install --no-input mlx90641-driver-evb9064x --upgrade
-         pip install --no-input pytest pytest-ordering pytest-html pytest-metadata
-         python -m pytest -v tests/app_testing -p no:cacheprovider --html=public/app-tests-jetson-nano-report.html --self-contained-html --metadata homepage https://github.com/melexis-fir/mlx90641-driver-evb9064x-py --metadata i2c_port auto --metadata host_hardware 'Jetson Nano'
-    - uses: actions/upload-artifact@master
-      with:
-        name: test_report
-        path: public
   test-on-hardware-raspberry-pi-4:
     environment:
       name: raspberry-pi-4|evb9064x|hw90641
@@ -102,13 +80,87 @@ jobs:
       with:
         name: test_report
         path: public
+  test-on-hardware-jetson-nano:
+    environment:
+      name: jetson-nano|evb9064x|hw90641
+    needs:
+      - test-unittesting
+    runs-on: 
+      - self-hosted
+      - linux
+      - jetson-nano
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create virtual env and run tests
+      run: |
+         virtualenv venv
+         source venv/bin/activate
+         pip install --no-input mlx90641-driver-evb9064x --upgrade
+         pip install --no-input pytest pytest-ordering pytest-html pytest-metadata
+         python -m pytest -v tests/app_testing -p no:cacheprovider --html=public/app-tests-jetson-nano-report.html --self-contained-html --metadata homepage https://github.com/melexis-fir/mlx90641-driver-evb9064x-py --metadata i2c_port auto --metadata host_hardware 'Jetson Nano'
+    - uses: actions/upload-artifact@master
+      with:
+        name: test_report
+        path: public
+  test-on-hardware-ubuntu:
+    environment:
+      name: ubuntu|evb9064x|hw90641
+    needs:
+      - test-unittesting
+    runs-on: 
+      - self-hosted
+      - linux
+      - ubuntu
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create virtual env and install requirements
+      run: |
+         virtualenv venv
+         source venv/bin/activate
+         pip install --no-input mlx90641-driver-evb9064x --upgrade
+         pip install --no-input pytest pytest-ordering pytest-html pytest-metadata
+    - name: run tests
+      run: |
+         source venv/bin/activate
+         python -m pytest -v tests/app_testing -p no:cacheprovider --html=public/app-tests-ubuntu-pc-report.html --self-contained-html --metadata homepage https://github.com/melexis-fir/mlx90641-driver-evb9064x-py --metadata i2c_port auto --metadata host_hardware 'ubuntu pc'
+    - uses: actions/upload-artifact@master
+      with:
+        name: test_report
+        path: public
+  test-on-hardware-win10:
+    environment:
+      name: windows|evb9064x|hw90641
+    needs:
+      - test-unittesting
+    runs-on: 
+      - self-hosted
+      - windows
+      - win10
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create virtual env and install requirements
+      run: |
+         virtualenv venv
+         source venv/bin/activate
+         pip install --no-input mlx90641-driver-evb9064x --upgrade
+         pip install --no-input pytest pytest-ordering pytest-html pytest-metadata
+    - name: run tests
+      run: |
+         source venv/bin/activate
+         python -m pytest -v tests/app_testing -p no:cacheprovider --html=public/app-tests-win10-pc-report.html --self-contained-html --metadata homepage https://github.com/melexis-fir/mlx90641-driver-evb9064x-py --metadata i2c_port auto --metadata host_hardware 'win10 pc'
+    - uses: actions/upload-artifact@master
+      with:
+        name: test_report
+        path: public
 
   publish-pypi:
     runs-on: ubuntu-latest
     if:   github.event_name == 'release' && github.event.action == 'created'
     needs:
-      - test-on-hardware-jetson-nano
       - test-on-hardware-raspberry-pi-4
+      - test-on-hardware-jetson-nano
+      - test-on-hardware-ubuntu
+      - test-on-hardware-win10
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@master
