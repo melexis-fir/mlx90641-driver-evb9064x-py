@@ -9,6 +9,10 @@
 
 #include "m_sp.h"
 
+// debugging terminal:
+//
+// sudo apt-get install gtkterm
+// gtkterm -b 8 -t 1 -s 115200 -p /dev/ttyACM0
 
 int main(void)
 {
