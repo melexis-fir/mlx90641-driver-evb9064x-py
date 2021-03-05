@@ -33,9 +33,13 @@ all: $(SHARED_LIB_FILE) $(STATIC_LIB_FILE)
 clean:
 	rm -f main *.o
 	rm -f src/*.o
+	rm -f *.exe
 	rm -f $(SHARED_LIB_FILE) $(STATIC_LIB_FILE)
 
 main.o: main.c
+	$(CC) -c -o $@ $(CFLAGS) $^
+
+serial_debug.o: serial_debug.c
 	$(CC) -c -o $@ $(CFLAGS) $^
 
 src/m_sp.o: src/m_sp.c
@@ -50,6 +54,8 @@ src/MLX90641_I2C_Driver_evb9064x.o: src/MLX90641_I2C_Driver_evb9064x.c
 main: main.o src/MLX90641_I2C_Driver_evb9064x.o src/m_sp.o src/evb9064x.o
 	$(CC) -o $@ $^ -lm -Wl,-rpath=$(LIB_RESULT_DIR)/$(MACHINE) -L$(LIB_RESULT_DIR)/$(MACHINE) $(DEP_LIBS)
 
+serial_debug: serial_debug.o src/m_sp.o
+	$(CC) -o $@ $^
 
 $(SHARED_LIB_FILE): src/MLX90641_I2C_Driver_evb9064x.o src/m_sp.o src/evb9064x.o
 	$(CC) -shared -o $@ $^ -L$(LIB_RESULT_DIR)/$(MACHINE) $(DEP_LIBS) -Wl,-rpath=$(LIB_RESULT_DIR)/$(MACHINE)
