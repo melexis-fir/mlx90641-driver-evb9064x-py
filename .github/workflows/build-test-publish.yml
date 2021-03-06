@@ -19,10 +19,6 @@ jobs:
       CFLAGS_EXTRA: '-D_BSD_SOURCE'
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@master
-      with:
-        name: version
-        path: .
     - run: make -C evb9064x/c-code clean all -e MACHINE=armv7l -e LIB_RESULT_DIR=builded
     - uses: actions/upload-artifact@master
       with:
@@ -38,10 +34,6 @@ jobs:
       CFLAGS_EXTRA: '-D_BSD_SOURCE'
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@master
-      with:
-        name: version
-        path: .
     - run: make -C evb9064x/c-code clean all -e MACHINE=aarch64 -e LIB_RESULT_DIR=builded
     - uses: actions/upload-artifact@master
       with:
@@ -51,10 +43,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@master
-      with:
-        name: version
-        path: .
     - run: make -C evb9064x/c-code clean all -e LIB_RESULT_DIR=builded
     - uses: actions/upload-artifact@master
       with:
@@ -68,10 +56,6 @@ jobs:
     container:
       image: mmozeiko/mingw-w64:latest
     steps:
-    - uses: actions/download-artifact@master
-      with:
-        name: version
-        path: .
     - uses: actions/checkout@v2
     - run: make -C evb9064x/c-code clean all -e LIB_RESULT_DIR=builded detected_OS=Windows
     - uses: actions/upload-artifact@master
@@ -100,10 +84,6 @@ jobs:
       - rpi4
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@master
-      with:
-        name: version
-        path: .
     - uses: actions/download-artifact@master
       with:
         name: libraries
@@ -135,10 +115,6 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@master
       with:
-        name: version
-        path: .
-    - uses: actions/download-artifact@master
-      with:
         name: libraries
         path: evb9064x/libs
     - name: Create virtual env and install requirements
@@ -166,10 +142,6 @@ jobs:
       - ubuntu
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@master
-      with:
-        name: version
-        path: .
     - uses: actions/download-artifact@master
       with:
         name: libraries
@@ -201,10 +173,6 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@master
       with:
-        name: version
-        path: .
-    - uses: actions/download-artifact@master
-      with:
         name: libraries
         path: evb9064x/libs
     - name: Create virtual env and install requirements
@@ -234,10 +202,6 @@ jobs:
       - test-on-hardware-win10
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@master
-      with:
-        name: version
-        path: .
     - uses: actions/download-artifact@master
       with:
         name: libraries
