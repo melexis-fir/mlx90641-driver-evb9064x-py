@@ -1,5 +1,6 @@
 import pytest
 import mlx90641_evb9064x
+import mlx90641
 
 
 order=0000
@@ -14,7 +15,7 @@ def test_version():
 @pytest.mark.run(order=order+1)
 def test_class_declared():
     global dev
-    dev = mlx90641_evb9064x.MLX90641()
+    dev = mlx90641.MLX90641()
 
 
 @pytest.mark.run(order=order+2)
