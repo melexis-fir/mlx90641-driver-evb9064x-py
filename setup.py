@@ -1,6 +1,6 @@
 from setuptools import setup
 
-version = '0.1.1'
+from evb9064x.version import VERSION as version
 
 requires = ['mlx90641-driver>=1.1.0',
             'pyserial>=3']

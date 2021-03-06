@@ -1,17 +1,22 @@
 import pytest
-from mlx90641_evb9064x import *
+import mlx90641_evb9064x
 
 order=0000
 dev = None
 
 
 @pytest.mark.run(order=order+0)
-def test_class_declared():
-    global dev
-    dev = MLX90641()
+def test_version():
+    print ('mlx90641-driver-evb9064x version: {}'.format(mlx90641_evb9064x.VERSION))
 
 
 @pytest.mark.run(order=order+1)
+def test_class_declared():
+    global dev
+    dev = mlx90641_evb9064x.MLX90641()
+
+
+@pytest.mark.run(order=order+2)
 def test_i2c_init(metadata):
     global dev
     
@@ -20,13 +25,13 @@ def test_i2c_init(metadata):
 
     i2c_port = metadata['i2c_port']
     if i2c_port == 'auto':
-        i2c_port = evb9064x_get_i2c_comport_url('auto')
+        i2c_port = mlx90641_evb9064x.evb9064x_get_i2c_comport_url('auto')
 
     r = dev.i2c_init(i2c_port)
     assert r == None
 
 
-@pytest.mark.run(order=order+2)
+@pytest.mark.run(order=order+3)
 def test_refresh_rate_setting():
     global dev
 
@@ -37,7 +42,7 @@ def test_refresh_rate_setting():
     assert dev.get_refresh_rate() == 4
 
 
-@pytest.mark.run(order=order+3)
+@pytest.mark.run(order=order+4)
 def test_dump_frame():
     global dev
 

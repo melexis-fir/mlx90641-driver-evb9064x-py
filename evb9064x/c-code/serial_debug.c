@@ -16,8 +16,8 @@
 
 int main(void)
 {
-  //struct MSpHandle *sp = m_spOpen("COM6", M_SP_115200, M_SP_ONE, M_SP_NONE, M_SP_OFF);
-  struct MSpHandle *sp = m_spOpen("/dev/ttyACM0", M_SP_115200, M_SP_ONE, M_SP_NONE, M_SP_OFF);
+  struct MSpHandle *sp = m_spOpen("COM6", M_SP_115200, M_SP_ONE, M_SP_NONE, M_SP_OFF);
+  //struct MSpHandle *sp = m_spOpen("/dev/ttyACM0", M_SP_115200, M_SP_ONE, M_SP_NONE, M_SP_OFF);
   char buffer[256];
   memset(buffer, 0, sizeof(buffer));
   buffer[0] = 0x01;
