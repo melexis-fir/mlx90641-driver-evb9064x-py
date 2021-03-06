@@ -1,5 +1,6 @@
 import pytest
 import mlx90641_evb9064x
+from mlx90641_evb9064x.version import VERSION
 
 order=0000
 dev = None
@@ -7,7 +8,7 @@ dev = None
 
 @pytest.mark.run(order=order+0)
 def test_version():
-    print ('mlx90641-driver-evb9064x version: {}'.format(mlx90641_evb9064x.VERSION))
+    print ('mlx90641-driver-evb9064x version: {}'.format(VERSION))
 
 
 @pytest.mark.run(order=order+1)
