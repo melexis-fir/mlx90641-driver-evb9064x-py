@@ -17,7 +17,7 @@ jobs:
       id: apply_version
       run: |
         echo "VERSION='${GITHUB_REF#refs/tags/V}'" > evb9064x/version.py
-        perl -pi -e "s/^VERSION=/VERSION='${GITHUB_REF#refs/tags/V}' setup.py
+        perl -pi -e "s/^VERSION=/VERSION='${GITHUB_REF#refs/tags/V}'" setup.py
     - uses: actions/upload-artifact@master
       with:
         name: version
@@ -242,7 +242,7 @@ jobs:
          pip install --no-input pytest pytest-ordering pytest-html pytest-metadata
     - name: run tests
       shell: cmd
-      run: |
+        run: |
          call venv\Scripts\activate.bat
          python -m pytest -v tests\app_testing -p no:cacheprovider --html=public\app-tests-win10-pc-report.html --self-contained-html --metadata homepage https://github.com/melexis-fir/mlx90641-driver-evb9064x-py --metadata i2c_port auto --metadata host_hardware "win10 pc"
     - uses: actions/upload-artifact@master
