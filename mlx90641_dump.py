@@ -1,4 +1,5 @@
 from mlx90641_evb9064x import *
+from mlx90641 import *
 
 
 def main():
