@@ -9,28 +9,8 @@ on:
       - created
 
 jobs:
-  build-version:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Apply version as in github-release...
-      id: apply_version
-      run: |
-        echo "VERSION='${GITHUB_REF#refs/tags/V}'" > evb9064x/version.py
-        perl -pi -e "s/^VERSION=/VERSION='${GITHUB_REF#refs/tags/V}'" setup.py
-    - uses: actions/upload-artifact@master
-      with:
-        name: version
-        path: setup.py
-    - uses: actions/upload-artifact@master
-      with:
-        name: version
-        path: evb9064x/version.py
-
   build-rpi4:
     runs-on: ubuntu-latest
-    needs:
-      - build-version
     container:
       image: mitchallen/pi-cross-compile
     env:
@@ -50,8 +30,6 @@ jobs:
         path: evb9064x/c-code/builded
   build-jetson-nano:
     runs-on: ubuntu-latest
-    needs:
-      - build-version
     container:
       image: kv76/cross_compile_jetson_nano:latest
     env:
@@ -71,8 +49,6 @@ jobs:
         path: evb9064x/c-code/builded
   build-linux-pc:
     runs-on: ubuntu-latest
-    needs:
-      - build-version
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@master
@@ -86,8 +62,6 @@ jobs:
         path: evb9064x/c-code/builded
   build-win10-pc:
     runs-on: ubuntu-latest
-    needs:
-      - build-version
     env:
       CC: /usr/local/bin/x86_64-w64-mingw32-gcc
       AR: /usr/local/bin/x86_64-w64-mingw32-ar
