@@ -1,6 +1,6 @@
 # MLX90641 driver for EVB90640-41
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/melexis-fir/mlx90641-driver-evb9064x-py?label=github-latest-release-tag)](https://github.com/melexis-fir/mlx90641-driver-evb9064x-py/releases) [![GitHub Workflow Status](https://github.com/melexis-fir/mlx90641-driver-evb9064x-py/workflows/build-test-publish/badge.svg)](https://github.com/melexis-fir/mlx90641-driver-evb9064x-py/actions?query=event%3Arelease) ![Lines of code](https://img.shields.io/tokei/lines/github/melexis-fir/mlx90641-driver-evb9064x-py)  
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/melexis-fir/mlx90641-driver-evb9064x-py?label=github-latest-release-tag)](https://github.com/melexis-fir/mlx90641-driver-evb9064x-py/releases) ![Lines of code](https://img.shields.io/tokei/lines/github/melexis-fir/mlx90641-driver-evb9064x-py)  
 
 [![PyPI](https://img.shields.io/pypi/v/mlx90641-driver-evb9064x)](https://pypi.org/project/mlx90641-driver-evb9064x) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/mlx90641-driver-evb9064x) ![PyPI - License](https://img.shields.io/pypi/l/mlx90641-driver-evb9064x)  
 

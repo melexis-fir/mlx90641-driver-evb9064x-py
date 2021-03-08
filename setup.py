@@ -23,7 +23,7 @@ setup(
     name="mlx90641-driver-evb9064x",
     version=get_version('evb9064x/__init__.py'),
     install_requires=[
-        'mlx90641-driver>=1.1.0',
+        'mlx90641-driver>=1.1.3',
         'pyserial>=3'
     ]
 )
