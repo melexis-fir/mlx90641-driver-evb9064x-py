@@ -37,13 +37,13 @@ And easy way to do this is by adding the user to the group `dialout`.
 * Open a terminal and run following command:  
 
 ```bash
-mlx90641-dump-evb9064x auto
+mlx90641-evb9064x-dump auto
 ```
 
 This program takes 1 optional argument.
 
 ```bash
-mlx90641-dump-evb9064x <communication-port>
+mlx90641-evb9064x-dump <communication-port>
 ```
 
 Note: this dump command is not yet available!
