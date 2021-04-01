@@ -1,11 +1,16 @@
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <string.h>
 
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "m_sp.h"
+#include "rs232.h"
 #include "evb9064x.h"
+
+#include <sys/time.h>
+
+
 
 enum Evb9064x_CMD
 {
@@ -26,7 +31,7 @@ enum Evb9064x_CMD
 
 struct Evb9064x_t
 {
-  struct MSpHandle *sp_handle_;
+  int port_number_;
 };
 
 
@@ -34,9 +39,23 @@ struct Evb9064x_t *
 evb9064x_open(const char *serial_port)
 {
   struct Evb9064x_t *handle = (struct Evb9064x_t *)malloc(sizeof (struct Evb9064x_t));
-  handle->sp_handle_ = m_spOpen(serial_port, M_SP_115200, M_SP_ONE, M_SP_NONE, M_SP_OFF);
 
-  m_spSetTimeout(handle->sp_handle_, 100000);
+  handle->port_number_ = RS232_GetPortnr(serial_port);
+
+  char mode[]={'8','N','1',0};
+  if(RS232_OpenComport(handle->port_number_, 115200, mode, 0))
+  {
+    printf("Can not open comport\n");
+    free(handle);
+    return NULL;
+  }
+
+  RS232_flushRXTX(handle->port_number_);
+
+  char buffer[256];
+  evb9064x_get_hardware_id(handle, buffer, 256);
+  printf("buffer: '%s'\n", buffer);
+
   return handle;
 }
 
@@ -44,8 +63,7 @@ evb9064x_open(const char *serial_port)
 void
 evb9064x_close(struct Evb9064x_t *handle)
 {
-  m_spClose(handle->sp_handle_);
-  handle->sp_handle_ = NULL;
+  RS232_CloseComport(handle->port_number_);
   free(handle);
   handle = NULL;
 }
@@ -88,8 +106,8 @@ evb9064x_send(struct Evb9064x_t *handle, uint8_t *data, uint16_t size)
   memcpy(&buffer[1], data, size);
   buffer[size+1] = crc;
 
-  m_spFlushInput(handle->sp_handle_);
-  m_spSend(handle->sp_handle_, buffer, size+2);
+  RS232_flushRXTX(handle->port_number_);
+  RS232_SendBuf(handle->port_number_, buffer, size+2);
   return 0;
 }
 
@@ -102,7 +120,7 @@ evb9064x_receive(struct Evb9064x_t *handle, uint8_t *data, uint16_t max_size, ui
   uint8_t buffer[16];
   uint16_t crc = 0;
 
-  int r = m_spReceive(handle->sp_handle_, buffer, 1);
+  int r = RS232_PollComport(handle->port_number_, buffer, 1);
   if (r != 1) return -6;
   uint16_t n = buffer[0];
   if (n == 0)
@@ -111,7 +129,7 @@ evb9064x_receive(struct Evb9064x_t *handle, uint8_t *data, uint16_t max_size, ui
   }
   if (n == 255)
   { // Special case; n is 16 bits wide
-    m_spReceive(handle->sp_handle_, buffer, 2);
+    RS232_PollComport(handle->port_number_, buffer, 2);
     n = buffer[0];
     n *= 256;
     n += buffer[1];
@@ -127,10 +145,30 @@ evb9064x_receive(struct Evb9064x_t *handle, uint8_t *data, uint16_t max_size, ui
     return -2;
   }
 
-  r = m_spReceive(handle->sp_handle_, data, n);
-  if (r != n) return -4;
+  // read until we received n bytes.
+  int bytes_read = 0;
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  unsigned long start = 1000000 * tv.tv_sec + tv.tv_usec;
+  while (bytes_read != n)
+  {
+    r = RS232_PollComport(handle->port_number_, &data[bytes_read], n - bytes_read);
+    if (r > 0)
+    {
+      bytes_read += r;
+    }
+    gettimeofday(&tv,NULL);
+    unsigned long now = 1000000 * tv.tv_sec + tv.tv_usec;
+    if ((now - start) > 200000) // > 200ms
+    {
+      return -6; // timeout!
+    }
+  }
+  if (bytes_read != n) return -4;
+
+  // now check crc.
   uint8_t crc_received = 0;
-  r = m_spReceive(handle->sp_handle_, &crc_received, 1);
+  r = RS232_PollComport(handle->port_number_, &crc_received, 1);
   if (r != 1) return -5;
 
   crc = mlx_crc(crc, data, n);
@@ -350,8 +388,6 @@ evb9064x_i2c_read(struct Evb9064x_t *handle, uint8_t slave_address, uint16_t mem
   int r = 0;
   uint16_t readed_size = 0;
   memset(buffer, 0, sizeof(buffer));
-
-  m_spSetTimeout(handle->sp_handle_, 100000);
 
   buffer[0] = CMD_I2C_Master_90640;
   buffer[1] = slave_address;

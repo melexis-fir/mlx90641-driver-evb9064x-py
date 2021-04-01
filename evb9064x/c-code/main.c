@@ -15,8 +15,8 @@ int main(void)
 {
   struct MLX90641DriverRegister_t *driver = MLX90641_get_register_evb9064x();
   printf ("driver name: '%s'\n", driver->name_);
-  // MLX90641_I2CInit_evb9064x("mlx://evb:9064x/COM20");
-  MLX90641_I2CInit_evb9064x("mlx://evb:9064x//dev/ttyACM0");
+  MLX90641_I2CInit_evb9064x("mlx://evb:9064x/COM6");
+  // MLX90641_I2CInit_evb9064x("mlx://evb:9064x/dev/ttyACM0");
 
 
   fflush(stdout);
